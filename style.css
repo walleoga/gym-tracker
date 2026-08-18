@@ -28,6 +28,7 @@ h2 {
   text-align: center;
   font-size: 18px;
   color: #38bdf8;
+  margin-bottom: 4px;
 }
 
 h3 {
@@ -40,52 +41,6 @@ h3 {
   padding-bottom: 6px;
   margin-bottom: 8px;
 }
-
-/* Timer */
-.timer-section {
-  background: #0f172a;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-}
-
-.timer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  color: #94a3b8;
-  margin-bottom: 8px;
-}
-
-.timer-display {
-  font-size: 18px;
-  font-weight: bold;
-  color: #fbbf24;
-}
-
-.timer-display.done {
-  color: #4ade80;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink { 50% { opacity: 0; } }
-
-.timer-buttons { display: flex; gap: 6px; }
-
-.btn-timer {
-  flex: 1;
-  background: #1e294f;
-  color: #cbd5e1;
-  border: 1px solid #334155;
-  padding: 6px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.btn-timer:hover { background: #38bdf8; color: #0b1329; }
-.clear-timer { flex: 0.3; background: #450a0a; color: #ef4444; border-color: #7f1d1d; }
 
 /* Tabs */
 .tabs {
@@ -155,10 +110,10 @@ select:focus, input:focus { border-color: #38bdf8; }
 
 /* Chart & Table */
 .chart-container { height: 180px; background-color: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid #1e294f; }
-.table-container { max-height: 180px; overflow-y: auto; border-radius: 8px; }
+.table-container { max-height: 220px; overflow-y: auto; border-radius: 8px; }
 
 table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
-th, td { padding: 8px; border-bottom: 1px solid #1e294f; }
+th, td { padding: 8px; border-bottom: 1px solid #1e294f; vertical-align: top; }
 th { background-color: #0f172a; color: #94a3b8; position: sticky; top: 0; }
 td { color: #cbd5e1; }
 

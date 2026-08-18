@@ -1,14 +1,18 @@
 const exercisesData = {
   push: [
+    "Press banca",
     "Press inclinado con mancuernas",
     "Peck deck",
     "Press militar con mancuernas",
     "Elevaciones laterales",
     "Tricep unilateral en polea alta",
-    "Tricep unilateral en polea baja"
+    "Tricep unilateral en polea baja",
+    "Flexiones",
+    "Fondos"
   ],
   pull: [
     "Dominadas neutras",
+    "Dominadas supinas",
     "Scott supino unilateral",
     "Scott martillo unilateral",
     "Bayesian sentado con mancuernas",
@@ -27,7 +31,6 @@ const exercisesData = {
 
 let currentTab = 'push';
 let chartInstance = null;
-let timerInterval = null;
 
 let workoutHistory = JSON.parse(localStorage.getItem('gymData')) || [];
 
@@ -55,6 +58,7 @@ function saveSet() {
   const exercise = document.getElementById('exercise').value;
   const weightInput = document.getElementById('weight').value;
   const reps = parseInt(document.getElementById('reps').value);
+  const notes = document.getElementById('notes').value.trim(); // Tomamos la nota
   
   const weight = weightInput === '' ? 0 : parseFloat(weightInput);
 
@@ -65,12 +69,14 @@ function saveSet() {
 
   const date = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
 
-  const newSet = { date, exercise, weight, reps, tab: currentTab };
+  const newSet = { date, exercise, weight, reps, notes, tab: currentTab };
   workoutHistory.push(newSet);
   localStorage.setItem('gymData', JSON.stringify(workoutHistory));
 
+  
   document.getElementById('weight').value = '';
   document.getElementById('reps').value = '';
+  document.getElementById('notes').value = '';
 
   renderHistory();
   updateChart();
@@ -80,14 +86,20 @@ function renderHistory() {
   const tbody = document.getElementById('history-body');
   tbody.innerHTML = '';
 
-  const recent = [...workoutHistory].reverse().slice(0, 15);
+  const recent = [...workoutHistory].reverse().slice(0, 20);
 
   recent.forEach(item => {
-    const weightDisplay = item.weight === 0 ? '<span style="color:#fbbf24">Corporal</span>' : `${item.weight} kg`;
+    const weightDisplay = item.weight === 0 ? '<span style="color:#fbbf24">Corp.</span>' : `${item.weight} kg`;
+    
+    const noteDisplay = item.notes ? `<div style="font-size: 10px; color: #94a3b8; margin-top: 3px;">💬 ${item.notes}</div>` : '';
+
     tbody.innerHTML += `
       <tr>
         <td>${item.date}</td>
-        <td style="color: #38bdf8; font-weight: bold;">${item.exercise}</td>
+        <td>
+          <div style="color: #38bdf8; font-weight: bold;">${item.exercise}</div>
+          ${noteDisplay}
+        </td>
         <td>${weightDisplay}</td>
         <td>${item.reps}</td>
       </tr>
@@ -163,48 +175,6 @@ function clearHistory() {
     renderHistory();
     updateChart();
   }
-}
-
-function startTimer(seconds) {
-  clearInterval(timerInterval);
-  let timeLeft = seconds;
-  const display = document.getElementById('timer-display');
-  display.classList.remove('done');
-
-  updateTimerDisplay(timeLeft);
-
-  timerInterval = setInterval(() => {
-    timeLeft--;
-    updateTimerDisplay(timeLeft);
-
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      display.classList.add('done');
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        oscillator.type = 'square';
-        oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); 
-        oscillator.connect(audioCtx.destination);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.5);
-      } catch(e) {}
-    }
-  }, 1000);
-}
-
-function stopTimer() {
-  clearInterval(timerInterval);
-  const display = document.getElementById('timer-display');
-  display.innerText = "00:00";
-  display.classList.remove('done');
-}
-
-function updateTimerDisplay(time) {
-  const mins = Math.floor(time / 60);
-  const secs = time % 60;
-  document.getElementById('timer-display').innerText = 
-    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
 window.onload = () => {
