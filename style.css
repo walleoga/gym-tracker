@@ -108,13 +108,24 @@ select:focus, input:focus { border-color: #38bdf8; }
 }
 .btn-save:hover { background-color: #22c55e; }
 
-/* Chart & Table */
 .chart-container { height: 180px; background-color: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid #1e294f; }
 .table-container { max-height: 220px; overflow-y: auto; border-radius: 8px; }
 
 table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
-th, td { padding: 8px; border-bottom: 1px solid #1e294f; vertical-align: top; }
+th, td { padding: 8px 4px; border-bottom: 1px solid #1e294f; vertical-align: top; }
 th { background-color: #0f172a; color: #94a3b8; position: sticky; top: 0; }
 td { color: #cbd5e1; }
 
 .btn-clear { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: color 0.2s;
+}
+.btn-delete:hover { color: #f87171; }

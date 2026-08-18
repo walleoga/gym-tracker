@@ -58,7 +58,7 @@ function saveSet() {
   const exercise = document.getElementById('exercise').value;
   const weightInput = document.getElementById('weight').value;
   const reps = parseInt(document.getElementById('reps').value);
-  const notes = document.getElementById('notes').value.trim(); // Tomamos la nota
+  const notes = document.getElementById('notes').value.trim();
   
   const weight = weightInput === '' ? 0 : parseFloat(weightInput);
 
@@ -73,7 +73,6 @@ function saveSet() {
   workoutHistory.push(newSet);
   localStorage.setItem('gymData', JSON.stringify(workoutHistory));
 
-  
   document.getElementById('weight').value = '';
   document.getElementById('reps').value = '';
   document.getElementById('notes').value = '';
@@ -86,11 +85,15 @@ function renderHistory() {
   const tbody = document.getElementById('history-body');
   tbody.innerHTML = '';
 
-  const recent = [...workoutHistory].reverse().slice(0, 20);
+  const historyWithIndex = workoutHistory.map((item, index) => ({
+    ...item,
+    originalIndex: index
+  }));
+
+  const recent = [...historyWithIndex].reverse().slice(0, 20);
 
   recent.forEach(item => {
     const weightDisplay = item.weight === 0 ? '<span style="color:#fbbf24">Corp.</span>' : `${item.weight} kg`;
-    
     const noteDisplay = item.notes ? `<div style="font-size: 10px; color: #94a3b8; margin-top: 3px;">💬 ${item.notes}</div>` : '';
 
     tbody.innerHTML += `
@@ -102,9 +105,21 @@ function renderHistory() {
         </td>
         <td>${weightDisplay}</td>
         <td>${item.reps}</td>
+        <td style="text-align: center;">
+          <button class="btn-delete" onclick="deleteEntry(${item.originalIndex})" title="Borrar serie">✕</button>
+        </td>
       </tr>
     `;
   });
+}
+
+function deleteEntry(index) {
+  if (confirm("¿Estás seguro de borrar esta serie?")) {
+    workoutHistory.splice(index, 1); 
+    localStorage.setItem('gymData', JSON.stringify(workoutHistory)); 
+    renderHistory(); 
+    updateChart(); 
+  }
 }
 
 function updateChart() {
@@ -131,7 +146,7 @@ function updateChart() {
   const chartLabel = isBodyweightOnly ? `PR Repeticiones` : `PR Peso (kg)`;
 
   renderPRChart(labels, dataPoints, selectedExercise, chartLabel);
-  renderHistory();
+  renderHistory(); 
 }
 
 function renderPRChart(labels, data, exerciseName, yLabel) {
@@ -169,7 +184,7 @@ function renderPRChart(labels, data, exerciseName, yLabel) {
 }
 
 function clearHistory() {
-  if (confirm("¿Seguro que querés borrar tu progreso?")) {
+  if (confirm("¿Seguro que querés borrar tu progreso entero?")) {
     workoutHistory = [];
     localStorage.removeItem('gymData');
     renderHistory();
