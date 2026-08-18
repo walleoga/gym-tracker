@@ -1,17 +1,17 @@
-
 const exercisesData = {
   push: [
     "Press inclinado con mancuernas",
     "Peck deck",
-    "Press militar",
+    "Press militar con mancuernas",
     "Elevaciones laterales",
+    "Tricep unilateral en polea alta",
     "Tricep unilateral en polea baja"
   ],
   pull: [
-    "Dominadas neutras", 
+    "Dominadas neutras",
     "Scott supino unilateral",
     "Scott martillo unilateral",
-    "Curl inclinado brazos por detrás",
+    "Bayesian sentado con mancuernas",
     "Jalón unilateral",
     "Remo con agarre cerrado",
     "Peck deck al revés",
@@ -27,6 +27,7 @@ const exercisesData = {
 
 let currentTab = 'push';
 let chartInstance = null;
+let timerInterval = null;
 
 let workoutHistory = JSON.parse(localStorage.getItem('gymData')) || [];
 
@@ -52,11 +53,13 @@ function setTab(tab) {
 
 function saveSet() {
   const exercise = document.getElementById('exercise').value;
-  const weight = parseFloat(document.getElementById('weight').value);
+  const weightInput = document.getElementById('weight').value;
   const reps = parseInt(document.getElementById('reps').value);
   
-  if (!weight || !reps) {
-    alert("Completá el peso y las repeticiones, fiera.");
+  const weight = weightInput === '' ? 0 : parseFloat(weightInput);
+
+  if (isNaN(reps) || reps <= 0) {
+    alert("Anotá las repeticiones, fiera.");
     return;
   }
 
@@ -64,10 +67,8 @@ function saveSet() {
 
   const newSet = { date, exercise, weight, reps, tab: currentTab };
   workoutHistory.push(newSet);
-
   localStorage.setItem('gymData', JSON.stringify(workoutHistory));
 
-  // Limpiar inputs
   document.getElementById('weight').value = '';
   document.getElementById('reps').value = '';
 
@@ -82,11 +83,12 @@ function renderHistory() {
   const recent = [...workoutHistory].reverse().slice(0, 15);
 
   recent.forEach(item => {
+    const weightDisplay = item.weight === 0 ? '<span style="color:#fbbf24">Corporal</span>' : `${item.weight} kg`;
     tbody.innerHTML += `
       <tr>
         <td>${item.date}</td>
         <td style="color: #38bdf8; font-weight: bold;">${item.exercise}</td>
-        <td>${item.weight} kg</td>
+        <td>${weightDisplay}</td>
         <td>${item.reps}</td>
       </tr>
     `;
@@ -95,37 +97,43 @@ function renderHistory() {
 
 function updateChart() {
   const selectedExercise = document.getElementById('exercise').value;
-  
   const dataForExercise = workoutHistory.filter(item => item.exercise === selectedExercise);
+
+  if (dataForExercise.length === 0) {
+    renderPRChart([], [], selectedExercise, "PR");
+    return;
+  }
+
+  const isBodyweightOnly = dataForExercise.every(item => item.weight === 0);
 
   const prsByDate = {};
   dataForExercise.forEach(item => {
-    if (!prsByDate[item.date] || item.weight > prsByDate[item.date]) {
-      prsByDate[item.date] = item.weight;
+    const metric = isBodyweightOnly ? item.reps : item.weight;
+    if (!prsByDate[item.date] || metric > prsByDate[item.date]) {
+      prsByDate[item.date] = metric;
     }
   });
 
   const labels = Object.keys(prsByDate);
   const dataPoints = Object.values(prsByDate);
+  const chartLabel = isBodyweightOnly ? `PR Repeticiones` : `PR Peso (kg)`;
 
-  renderPRChart(labels, dataPoints, selectedExercise);
+  renderPRChart(labels, dataPoints, selectedExercise, chartLabel);
   renderHistory();
 }
 
-function renderPRChart(labels, data, exerciseName) {
+function renderPRChart(labels, data, exerciseName, yLabel) {
   const canvas = document.getElementById('prChart');
   const ctx = canvas.getContext('2d');
 
-  if (chartInstance) {
-    chartInstance.destroy();
-  }
+  if (chartInstance) chartInstance.destroy();
 
   chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels,
       datasets: [{
-        label: `PR Peso (kg) - ${exerciseName}`,
+        label: `${yLabel} - ${exerciseName}`,
         data: data,
         borderColor: '#4ade80',
         backgroundColor: 'rgba(74, 222, 128, 0.2)',
@@ -139,32 +147,64 @@ function renderPRChart(labels, data, exerciseName) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: { color: '#94a3b8', font: { size: 11 } }
-        }
-      },
+      plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
       scales: {
-        x: {
-          ticks: { color: '#64748b', font: { size: 10 } },
-          grid: { display: false }
-        },
-        y: {
-          ticks: { color: '#64748b', font: { size: 10 } },
-          grid: { color: '#1e294f' }
-        }
+        x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e294f' } }
       }
     }
   });
 }
 
 function clearHistory() {
-  if (confirm("¿Estás seguro que querés borrar todo el historial? Esto no se puede deshacer.")) {
+  if (confirm("¿Seguro que querés borrar tu progreso?")) {
     workoutHistory = [];
     localStorage.removeItem('gymData');
     renderHistory();
     updateChart();
   }
+}
+
+function startTimer(seconds) {
+  clearInterval(timerInterval);
+  let timeLeft = seconds;
+  const display = document.getElementById('timer-display');
+  display.classList.remove('done');
+
+  updateTimerDisplay(timeLeft);
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay(timeLeft);
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      display.classList.add('done');
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); 
+        oscillator.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.5);
+      } catch(e) {}
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  const display = document.getElementById('timer-display');
+  display.innerText = "00:00";
+  display.classList.remove('done');
+}
+
+function updateTimerDisplay(time) {
+  const mins = Math.floor(time / 60);
+  const secs = time % 60;
+  document.getElementById('timer-display').innerText = 
+    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
 window.onload = () => {
