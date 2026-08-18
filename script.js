@@ -90,7 +90,9 @@ function renderHistory() {
     originalIndex: index
   }));
 
-  const recent = [...historyWithIndex].reverse().slice(0, 20);
+  const filteredByTab = historyWithIndex.filter(item => item.tab === currentTab);
+
+  const recent = [...filteredByTab].reverse().slice(0, 20);
 
   recent.forEach(item => {
     const weightDisplay = item.weight === 0 ? '<span style="color:#fbbf24">Corp.</span>' : `${item.weight} kg`;
@@ -115,10 +117,10 @@ function renderHistory() {
 
 function deleteEntry(index) {
   if (confirm("¿Estás seguro de borrar esta serie?")) {
-    workoutHistory.splice(index, 1); 
-    localStorage.setItem('gymData', JSON.stringify(workoutHistory)); 
-    renderHistory(); 
-    updateChart(); 
+    workoutHistory.splice(index, 1);
+    localStorage.setItem('gymData', JSON.stringify(workoutHistory));
+    renderHistory();
+    updateChart();
   }
 }
 
@@ -146,7 +148,7 @@ function updateChart() {
   const chartLabel = isBodyweightOnly ? `PR Repeticiones` : `PR Peso (kg)`;
 
   renderPRChart(labels, dataPoints, selectedExercise, chartLabel);
-  renderHistory(); 
+  renderHistory();
 }
 
 function renderPRChart(labels, data, exerciseName, yLabel) {
@@ -194,5 +196,4 @@ function clearHistory() {
 
 window.onload = () => {
   setTab('push');
-  renderHistory();
 };
